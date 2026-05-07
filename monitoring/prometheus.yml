@@ -1,0 +1,28 @@
+# prometheus.yml
+# This is the Prometheus configuration file.
+# It tells Prometheus which services to scrape metrics from,
+# and how often to scrape them.
+
+global:
+  scrape_interval: 15s # scrape every service every 15 seconds
+
+scrape_configs:
+  # Prometheus also scrapes itself — useful for monitoring Prometheus health
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Scrape user-service — "user-service" is the container name in Docker network
+  - job_name: "user-service"
+    static_configs:
+      - targets: ["user-service:8001"]
+
+  # Scrape auth-service
+  - job_name: "auth-service"
+    static_configs:
+      - targets: ["auth-service:8002"]
+
+  # Scrape order-service
+  - job_name: "order-service"
+    static_configs:
+      - targets: ["order-service:8003"]

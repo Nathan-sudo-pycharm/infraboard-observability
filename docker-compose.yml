@@ -1,0 +1,71 @@
+# docker-compose.yml
+# This file defines ALL the services in our stack.
+# One command — "docker-compose up" — starts everything.
+# Docker Compose handles networking between containers automatically.
+
+version: "3.8"
+
+services:
+  # ── User Service ──────────────────────────────
+  user-service:
+    build: ./services/user-service # build the image from this folder's Dockerfile
+    ports:
+      - "8001:8001" # map host port 8001 → container port 8001
+    networks:
+      - infraboard-network # all services share this network so they can talk
+
+  # ── Auth Service ──────────────────────────────
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "8002:8002"
+    networks:
+      - infraboard-network
+
+  # ── Order Service ─────────────────────────────
+  order-service:
+    build: ./services/order-service
+    ports:
+      - "8003:8003"
+    networks:
+      - infraboard-network
+
+  # ── Prometheus ────────────────────────────────
+  # Prometheus scrapes metrics from all 3 services every 15 seconds
+  prometheus:
+    image: prom/prometheus:latest # official Prometheus image — no Dockerfile needed
+    ports:
+      - "9090:9090" # Prometheus UI available at localhost:9090
+    volumes:
+      # Mount our config file into the container
+      # This tells Prometheus which services to scrape
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - infraboard-network
+
+  # ── Grafana ───────────────────────────────────
+  # Grafana reads from Prometheus and displays beautiful dashboards
+  grafana:
+    image: grafana/grafana:latest # official Grafana image — no Dockerfile needed
+    ports:
+      - "3000:3000" # Grafana UI available at localhost:3000
+    environment:
+      # Default login credentials for Grafana
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      # Persist Grafana data (dashboards, settings) across restarts
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - infraboard-network
+
+# ── Network Definition ────────────────────────
+# A custom bridge network so all containers can reach each other
+# by service name (e.g. "user-service") instead of IP address
+networks:
+  infraboard-network:
+    driver: bridge
+
+# ── Volume Definition ─────────────────────────
+# Named volume so Grafana data persists even if container restarts
+volumes:
+  grafana-storage:
