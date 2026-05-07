@@ -1,0 +1,50 @@
+# ─────────────────────────────────────────────
+# .github/workflows/ci.yml
+# This is our CI (Continuous Integration) pipeline.
+# GitHub Actions automatically runs this every time
+# we push code to GitHub.
+# It installs dependencies and runs all our tests.
+# ─────────────────────────────────────────────
+
+name: InfraBoard CI # name shown in GitHub Actions tab
+
+# on: defines WHEN this pipeline triggers
+# push means: run this every time code is pushed to any branch
+on: [push]
+
+jobs:
+  test:
+    # runs-on defines the machine GitHub provides to run our tests
+    # ubuntu-latest = a free Linux virtual machine
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out our code onto the virtual machine
+      # actions/checkout is a pre-built GitHub Action
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Install Python 3.11 on the virtual machine
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # Step 3: Install dependencies for all 3 services
+      - name: Install user-service dependencies
+        run: pip install -r services/user-service/requirements.txt
+
+      - name: Install auth-service dependencies
+        run: pip install -r services/auth-service/requirements.txt
+
+      - name: Install order-service dependencies
+        run: pip install -r services/order-service/requirements.txt
+
+      # Step 4: Install pytest — our testing framework
+      - name: Install pytest
+        run: pip install pytest httpx
+
+      # Step 5: Run all tests
+      # pytest automatically finds all files named test_*.py
+      - name: Run tests
+        run: pytest services/ -v
