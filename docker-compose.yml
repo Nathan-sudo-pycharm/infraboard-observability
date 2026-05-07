@@ -3,8 +3,6 @@
 # One command — "docker-compose up" — starts everything.
 # Docker Compose handles networking between containers automatically.
 
-version: "3.8"
-
 services:
   # ── User Service ──────────────────────────────
   user-service:
@@ -29,6 +27,18 @@ services:
       - "8003:8003"
     networks:
       - infraboard-network
+
+  # ── Alerting / ML Detector ────────────────────
+  # Runs the anomaly detection loop every 30 seconds
+  alerting:
+    build: ./alerting
+    depends_on:
+      - prometheus # wait for Prometheus to start first
+    networks:
+      - infraboard-network
+    volumes:
+      # Persist the SQLite alerts database outside the container
+      - alerts-storage:/app
 
   # ── Prometheus ────────────────────────────────
   # Prometheus scrapes metrics from all 3 services every 15 seconds
@@ -69,3 +79,4 @@ networks:
 # Named volume so Grafana data persists even if container restarts
 volumes:
   grafana-storage:
+  alerts-storage:
