@@ -46,5 +46,12 @@ jobs:
 
       # Step 5: Run all tests
       # pytest automatically finds all files named test_*.py
-      - name: Run tests
-        run: pytest services/ -v
+      # Run tests for each service separately to avoid module name conflicts
+      - name: Run user-service tests
+        run: pytest services/user-service/tests/test_user_service.py -v
+
+      - name: Run auth-service tests
+        run: pytest services/auth-service/tests/test_auth_service.py -v
+
+      - name: Run order-service tests
+        run: pytest services/order-service/tests/test_order_service.py -v
